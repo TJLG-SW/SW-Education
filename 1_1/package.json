@@ -1,0 +1,21 @@
+{
+  "name": "social-work-ethics-simulator",
+  "version": "1.0.0",
+  "description": "社会工作伦理案例模拟器 - 医务社工中的伦理决策实践",
+  "main": "app.js",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "build": "node build.js",
+    "serve:dist": "cd dist && python -m http.server 8080"
+  },
+  "keywords": [
+    "social-work",
+    "ethics",
+    "simulator",
+    "deepseek-ai"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {}
+}

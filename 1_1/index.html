@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社会工作伦理案例模拟器</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        function handleScriptError(filename) {
+            console.error(`❌ 脚本加载失败: ${filename}`);
+            document.body.innerHTML = `
+                <div style="
+                    max-width: 600px;
+                    margin: 50px auto;
+                    padding: 30px;
+                    background: #fef2f2;
+                    border: 2px solid #fecaca;
+                    border-radius: 12px;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                ">
+                    <h2 style="color: #dc2626; margin-bottom: 15px;">⚠️ 系统错误：脚本文件加载失败</h2>
+                    <p style="margin-bottom: 10px;"><strong>无法加载文件：</strong><code style="background: #f3f4f6; padding: 2px 8px; border-radius: 4px;">${filename}</code></p>
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <h3 style="color: #1f2937; margin-bottom: 10px;">🔧 解决步骤：</h3>
+                        <ol style="line-height: 1.8; color: #374151;">
+                            <li><strong>检查服务器：</strong>确认静态文件已正确部署</li>
+                            <li><strong>强制刷新：</strong>按 Ctrl+Shift+R 或 Ctrl+F5 清除缓存重载</li>
+                            <li><strong>检查文件：</strong>确认 ${filename} 文件存在于项目目录中</li>
+                        </ol>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</head>
+<body>
+    <div id="app">
+        <!-- 信息采集页面 -->
+        <div id="info-page" class="page active">
+            <div class="container info-container">
+                <header class="main-header">
+                    <h1>📝 测试者信息采集</h1>
+                    <p class="subtitle">请填写您的基本信息，以便我们为您提供更好的测试体验</p>
+                </header>
+
+                <form id="info-form" class="info-form" onsubmit="event.preventDefault(); window.simulator && window.simulator.handleInfoFormSubmit(); return false;">
+                    <div class="form-section">
+                        <h3>👤 基本信息</h3>
+                        
+                        <div class="form-group">
+                            <label for="name">姓名 <span class="required">*</span></label>
+                            <input type="text" id="name" name="name" required placeholder="请输入您的姓名">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender">性别 <span class="required">*</span></label>
+                            <select id="gender" name="gender" required>
+                                <option value="">请选择</option>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="major">专业 <span class="required">*</span></label>
+                            <input type="text" id="major" name="major" required placeholder="例如：社会工作、心理学等">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>🎓 学籍信息</h3>
+                        
+                        <div class="form-group">
+                            <label for="student-type">学生类型 <span class="required">*</span></label>
+                            <select id="student-type" name="studentType" required>
+                                <option value="">请选择</option>
+                                <option value="本科">本科生</option>
+                                <option value="研究生">研究生（硕士/博士）</option>
+                                <option value="在职">在职人员</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="grade-group">
+                            <label for="grade">年级 <span class="required">*</span></label>
+                            <select id="grade" name="grade" required>
+                                <option value="">请选择</option>
+                                <option value="大一">大一</option>
+                                <option value="大二">大二</option>
+                                <option value="大三">大三</option>
+                                <option value="大四">大四</option>
+                                <option value="研一">研一</option>
+                                <option value="研二">研二</option>
+                                <option value="研三及以上">研三及以上</option>
+                                <option value="在职1年以下">在职1年以下</option>
+                                <option value="在职1-3年">在职1-3年</option>
+                                <option value="在职3-5年">在职3-5年</option>
+                                <option value="在职5年以上">在职5年以上</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="school">学校/单位 <span class="required">*</span></label>
+                            <input type="text" id="school" name="school" required placeholder="请输入您的学校或工作单位名称">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>📞 联系方式（选填）</h3>
+                        
+                        <div class="form-group">
+                            <label for="phone">手机号码</label>
+                            <input type="tel" id="phone" name="phone" placeholder="用于接收测试结果通知（选填）">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">电子邮箱</label>
+                            <input type="email" id="email" name="email" placeholder="用于发送详细报告（选填）">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="primary-btn" id="submit-info-btn">
+                            提交信息并开始测试 →
+                        </button>
+                    </div>
+
+                    <p class="privacy-note">
+                        🔒 您的信息将被严格保密，仅用于学术研究和统计分析，不会向第三方泄露。
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <!-- 首页 -->
+        <div id="home-page" class="page">
+            <div class="container">
+                <header class="main-header">
+                    <h1>🏥 社会工作伦理案例模拟器</h1>
+                    <p class="subtitle">医务社工中的伦理决策实践</p>
+                </header>
+
+                <section class="case-intro">
+                    <h2>📋 案例背景</h2>
+                    <div class="case-content">
+                        <p><strong>场景：</strong>某省级医院肿瘤科</p>
+                        <p><strong>案主：</strong>小明，男，11岁，非霍奇金淋巴瘤晚期患者</p>
+                        <p><strong>病情：</strong>肿瘤已扩散，现有治疗手段无法治愈，预计存活期1-3个月</p>
+                        <p><strong>转介：</strong>由主治医生转介给驻科医务社工小李</p>
+                    </div>
+                </section>
+
+                <section class="characters">
+                    <h2>👥 角色介绍</h2>
+                    <div class="character-grid">
+                        <div class="character-card">
+                            <div class="avatar social-worker">👩‍💼</div>
+                            <h3>社工小李</h3>
+                            <p>24岁，入职一年半</p>
+                            <p>特点：极强的共情能力和资源链接能力</p>
+                        </div>
+                        <div class="character-card">
+                            <div class="avatar mother">👩</div>
+                            <h3>刘雪梅（母亲）</h3>
+                            <p>全职陪护，高度焦虑</p>
+                            <p>视"回家"为放弃孩子，情绪不稳定，但对孩子有极深的爱</p>
+                        </div>
+                        <div class="character-card">
+                            <div class="avatar child">👦</div>
+                            <h3>小明（患儿）</h3>
+                            <p>11岁，聪明敏感</p>
+                            <p>已察觉病情异常，压抑情绪不让父母伤心，有回家的愿望</p>
+                        </div>
+                        <div class="character-card">
+                            <div class="avatar father">👨</div>
+                            <h3>陈国强（父亲）</h3>
+                            <p>外表强硬，沉默寡言</p>
+                            <p>每天往返于医院和家庭之间，独自面对经济压力</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mission">
+                    <h2>🎯 主线任务</h2>
+                    <div class="mission-content">
+                        <div class="mission-box">
+                            <span class="mission-icon">📋</span>
+                            <div class="mission-text">
+                                <strong>你的核心任务：</strong>
+                                <p>作为社工小李，你需要完成以下两个关键目标：</p>
+                                <ol>
+                                    <li><strong>与小明家属交谈</strong> - 了解他们对小明病情的看法和态度，帮助他们面对现实</li>
+                                    <li><strong>组织家庭会议进行商谈</strong> - 协助这个家庭做出符合小明最大利益的决策</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="mission-note">
+                            <p>💡 提示：在整个过程中，你将面临多个伦理困境。每个选择都会影响最终结果。没有绝对的对错，但需要你在共情与专业之间找到平衡。</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="rules">
+                    <h2>📖 交互规则</h2>
+                    <div class="rules-content">
+                        <div class="rule-item">
+                            <span class="rule-icon">💬</span>
+                            <div>
+                                <strong>角色扮演对话</strong>
+                                <p>你将扮演社工小李，与案例中的角色进行真实对话。AI将根据你的回应推动剧情发展。</p>
+                            </div>
+                        </div>
+                        <div class="rule-item">
+                            <span class="rule-icon">⚖️</span>
+                            <div>
+                                <strong>伦理决策</strong>
+                                <p>每个节点都包含关键的伦理选择。你的决定会影响剧情走向、家庭关系和最终结局。</p>
+                            </div>
+                        </div>
+                        <div class="rule-item">
+                            <span class="rule-icon">🎯</span>
+                            <div>
+                                <strong>倾向分析</strong>
+                                <p>系统会实时分析你的话语倾向（情感安抚/专业边界/诚实沟通等），并给出伦理建议。</p>
+                            </div>
+                        </div>
+                        <div class="rule-item">
+                            <span class="rule-icon">🔄</span>
+                            <div>
+                                <strong>多线剧情</strong>
+                                <p>不同选择导向不同情节。体验真实的伦理困境：如何在共情与专业之间找到平衡？</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="warning">
+                    <p>⚠️ 本案例基于真实临床情境改编，旨在帮助社会工作者提升伦理决策能力。请以尊重、专业的态度参与模拟，一旦退出则不能找回记录！！！</p>
+                </section>
+
+                <button id="start-btn" class="primary-btn">
+                    开始模拟 →
+                </button>
+            </div>
+        </div>
+
+        <!-- 模拟对话页面 -->
+        <div id="simulation-page" class="page">
+            <div class="sim-container">
+                <!-- 左侧：对话区域 -->
+                <div class="chat-area">
+                    <div class="chat-header">
+                        <h2>💬 伦理模拟对话</h2>
+                        <div class="node-indicator">
+                            当前节点：<span id="current-node-name">准备中</span>
+                        </div>
+                    </div>
+
+                    <div id="chat-messages" class="chat-messages">
+                        <!-- 对话消息将在这里动态生成 -->
+                    </div>
+
+                    <div class="input-area">
+                        <textarea 
+                            id="user-input" 
+                            placeholder="输入你的回复（作为社工小李）..."
+                            rows="3"
+                        ></textarea>
+                        <button id="send-btn" class="send-btn">
+                            发送
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 右侧：状态栏 -->
+                <div class="status-panel">
+                    <div class="status-section">
+                        <h3>📊 当前情景</h3>
+                        <div id="scenario-box" class="info-box">
+                            <p>加载中...</p>
+                        </div>
+                    </div>
+
+                    <div class="status-section">
+                        <h3>💭 对话记录</h3>
+                        <div id="message-log" class="log-box">
+                            <p class="empty-log">暂无消息</p>
+                        </div>
+                    </div>
+
+                    <div class="status-section">
+                        <h3>📈 对话进度</h3>
+                        <div id="progress-info" class="progress-box">
+                            <p>等待开始...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 结束页面 -->
+        <div id="end-page" class="page">
+            <div class="container end-container">
+                <h1>🎭 模拟结束</h1>
+                <div id="final-summary"></div>
+                <div id="airtable-status" style="text-align: center; margin: 15px 0; font-size: 14px;"></div>
+                <button id="restart-btn" class="primary-btn">
+                    重新开始
+                </button>
+            </div>
+        </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" onerror="console.warn('jsPDF CDN加载失败，PDF导出将不可用')"></script>
+    <script src="nodes.js?v=202604230120" onerror="handleScriptError('nodes.js', this)"></script>
+    <script src="api.js?v=202604230120" onerror="handleScriptError('api.js', this)"></script>
+    <script src="app.js?v=202604230120" onerror="handleScriptError('app.js', this)"></script>
+    
+    <script>
+        function handleScriptError(filename, scriptElement) {
+            console.error(`❌ 脚本加载失败: ${filename}`);
+            
+            document.body.innerHTML = `
+                <div style="
+                    max-width: 600px; 
+                    margin: 50px auto; 
+                    padding: 30px; 
+                    background: #fef2f2; 
+                    border: 2px solid #fecaca; 
+                    border-radius: 12px;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                ">
+                    <h2 style="color: #dc2626; margin-bottom: 15px;">⚠️ 系统错误：脚本文件加载失败</h2>
+                    
+                    <p style="margin-bottom: 10px;"><strong>无法加载文件：</strong><code style="background: #f3f4f6; padding: 2px 8px; border-radius: 4px;">${filename}</code></p>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <h3 style="color: #1f2937; margin-bottom: 10px;">🔧 解决步骤：</h3>
+                        <ol style="line-height: 1.8; color: #374151;">
+                            <li><strong>检查服务器：</strong>确保 Python HTTP 服务器正在运行（端口8080）</li>
+                            <li><strong>强制刷新：</strong>按 Ctrl+Shift+R 或 Ctrl+F5 清除缓存重载</li>
+                            <li><strong>检查文件：</strong>确认 ${filename} 文件存在于项目目录中</li>
+                            <li><strong>重启浏览器：</strong>关闭所有标签页后重新打开</li>
+                            <li><strong>重启服务器：</strong>在命令行运行：<code>python -m http.server 8080</code></li>
+                        </ol>
+                    </div>
+                    
+                    <div style="background: #fffbeb; padding: 15px; border-radius: 8px; border: 1px solid #fde68a;">
+                        <h4 style="color: #92400e; margin-bottom: 8px;">💡 常见原因：</h4>
+                        <ul style="color: #78350f; line-height: 1.6; margin: 0; padding-left: 20px;">
+                            <li>Python HTTP服务器未启动或已崩溃</li>
+                            <li>端口8080被其他程序占用</li>
+                            <li>浏览器缓存了错误的响应</li>
+                            <li>文件路径或名称不正确</li>
+                        </ul>
+                    </div>
+                    
+                    <button onclick="location.reload(true)" style="
+                        margin-top: 20px;
+                        padding: 10px 24px;
+                        background: #3b82f6;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 16px;
+                    ">🔄 重试加载页面</button>
+                </div>
+            `;
+        }
+        
+        window.addEventListener('load', function() {
+            if (typeof CASE_NODES === 'undefined') {
+                console.error('❌ CASE_NODES 未定义，可能 nodes.js 未正确加载');
+            }
+            if (typeof api === 'undefined') {
+                console.error('❌ api 对象未定义，可能 api.js 未正确加载');
+            }
+        });
+    </script>
+
+    <button id="sidebar-toggle" class="sidebar-toggle hidden" onclick="window.simulator && window.simulator.toggleSidebar()">☰</button>
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.simulator && window.simulator.toggleSidebar()"></div>
+</body>
+</html>
